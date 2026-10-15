@@ -1,6 +1,10 @@
 # fem2bdf — GeniE/Sesam FEM 转 Nastran BDF 转换器
 
 > 该项目由 Kimi K3 生成。
+>
+> 本项目基于 DNV 开源的 ExtFEMIO 库（MIT License）构建，
+> 感谢 DNV（Det Norske Veritas）将该库公开：
+> https://github.com/dnvgl/ExtFEMIO
 
 ## 这个程序是做什么的
 
