@@ -1,0 +1,230 @@
+$
+$ Converted from GeniE/Sesam FEM file: test_model.fem
+$ Converter: fem2bdf (ExtFEMIO, github.com/dnvgl/ExtFEMIO)
+$
+$ TEXT: fem2bdf regression model    
+SOL 101
+CEND
+TITLE = Converted from test_model.fem
+ECHO = NONE
+DISPLACEMENT(PRINT) = ALL
+SPCFORCES(PRINT) = ALL
+STRESS(PRINT) = ALL
+SUBCASE 1
+  LABEL = LC1
+  SPC = 1
+  MPC = 1
+  LOAD = 1
+SUBCASE 2
+  LABEL = LC2
+  SPC = 2
+  MPC = 1
+  LOAD = 2
+BEGIN BULK
+$
+$ Materials (MISOSEL -> MAT1, MORSMEL -> MAT2)
+$
+MAT1           12.050+11        3.000-017.850+03 0.00+00         0.00+00
+MAT1           27.000+10        3.300-012.700+03 0.00+00         0.00+00
+MAT2           31.620+114.860+10 0.00+001.620+11 0.00+005.680+107.850+03
+        1.200-051.200-05 0.00+00         0.00+00
+$
+$ Nodes (GNODE/GCOORD -> GRID)
+$
+GRID           1         0.00+00 0.00+00 0.00+00
+GRID           2        2.000+00 0.00+00 0.00+00
+GRID           3        2.000+001.000+00 0.00+00
+GRID           4         0.00+001.000+00 0.00+00
+GRID           5         0.00+00 0.00+003.000+00
+GRID           6        2.000+00 0.00+003.000+00
+GRID          11        1.000+01 0.00+00 0.00+00
+GRID          12        1.100+01 0.00+00 0.00+00
+GRID          13        1.100+011.000+00 0.00+00
+GRID          14        1.000+011.000+00 0.00+00
+GRID          15        1.000+01 0.00+001.000+00
+GRID          16        1.100+01 0.00+001.000+00
+GRID          17        1.100+011.000+001.000+00
+GRID          18        1.000+011.000+001.000+00
+GRID          21        1.200+01 0.00+00 0.00+00
+GRID          22        1.200+011.000+00 0.00+00
+GRID          23        1.300+011.000+00 0.00+00
+GRID          24        1.300+01 0.00+00 0.00+00
+GRID          25        1.200+01 0.00+001.000+00
+GRID          26        1.200+011.000+001.000+00
+GRID          27        1.300+011.000+001.000+00
+GRID          28        1.300+01 0.00+001.000+00
+GRID          31         0.00+001.000+01 0.00+00
+GRID          32        1.000+001.000+01 0.00+00
+GRID          33         0.00+001.100+01 0.00+00
+GRID          34         0.00+001.000+011.000+00
+GRID          41         0.00+001.200+01 0.00+00
+GRID          42        1.000+001.200+01 0.00+00
+GRID          43         0.00+001.300+01 0.00+00
+GRID          44         0.00+001.200+011.000+00
+GRID          45        1.000+001.200+011.000+00
+GRID          46         0.00+001.300+011.000+00
+$
+$ Shell properties (GELTH -> PSHELL)
+$
+PSHELL       100       11.200-02
+PSHELL       215       21.200-02
+PSHELL       216       31.200-02
+PSHELL       101       1 0.00+00
+$
+$ Solid properties (material -> PSOLID)
+$
+PSOLID         1       1
+PSOLID         2       2
+$
+$ Beam properties (GBEAMG -> PBEAM; GPIPE/GIORH/GIORHR/
+$   GUSYI/GBOX/GDOBO/GCHAN/GCHANR/GLSEC/GLSECR/GTONP/GBARM
+$   -> PBEAML)
+$
+PBEAM*               200               15.35000000000-038.00000000000-05
+*       6.20000000000-06                8.36000000000-06                
+*                                                                       
+*                                                                       
+*       YESA            1.00000000000+00                                
+*                                                                       
+*                                                                       
+*                                                                       
+*       8.03738317757-014.85981308411-01
+*       
+PBEAML       201       2MSCBML0 TUBE                                    
+        5.000-012.000-02        YES     1.000+00
+$ GIORH GEONO=202 -> PBEAML I
+PBEAML       202       1MSCBML0 I                                       
+        3.000-011.500-011.500-018.000-031.200-021.200-02        YES     
+        1.000+00
+$ GBARM GEONO=204 -> PBEAML BAR
+PBEAML       204       1MSCBML0 BAR                                     
+        2.000-014.000-01        YES     1.000+00
+$ GBARM GEONO=205 trapezoidal; converted to equivalent PBEAM
+PBEAM*               205               16.00000000000-027.70370370370-04
+*       1.25000000000-04 0.0000000000+003.43862697601-04                
+*                                                                       
+*                                                                       
+*       YESA            1.00000000000+00
+*       
+$ GBOX GEONO=206 -> PBEAML BOX
+PBEAML       206       1MSCBML0 BOX                                     
+        3.000-015.000-012.000-021.000-02        YES     1.000+00
+$ GLSEC GEONO=207 -> PBEAML L
+PBEAML       207       1MSCBML0 L                                       
+        1.500-012.500-011.200-021.000-02        YES     1.000+00
+$ GCHAN GEONO=208 -> PBEAML CHAN
+PBEAML       208       1MSCBML0 CHAN                                    
+        1.200-013.000-011.200-028.000-03        YES     1.000+00
+$ GTONP GEONO=209 -> PBEAML I (plate as bottom flange)
+PBEAML       209       1MSCBML0 I                                       
+        3.640-018.000-011.200-018.000-031.400-021.200-02        YES     
+        1.000+00
+$ WARNING: GUSYI GEONO=210 has off-centre web; flange offsets dropped
+$ GUSYI GEONO=210 -> PBEAML I
+PBEAML       210       1MSCBML0 I                                       
+        4.000-013.000-012.000-011.000-022.000-021.500-02        YES     
+        1.000+00
+$ GIORHR GEONO=211 -> PBEAML I (fillet radii dropped)
+PBEAML       211       1MSCBML0 I                                       
+        3.000-011.500-011.500-018.000-031.200-021.200-02        YES     
+        1.000+00
+$ GLSECR GEONO=212 -> PBEAML L (fillet radius dropped)
+PBEAML       212       1MSCBML0 L                                       
+        1.200-012.000-011.000-021.000-02        YES     1.000+00
+$ GCHANR GEONO=213 -> PBEAML CHAN (fillet radius dropped)
+PBEAML       213       1MSCBML0 CHAN                                    
+        1.000-012.500-011.000-028.000-03        YES     1.000+00
+$ GDOBO GEONO=214 -> PBEAML I
+PBEAML       214       1MSCBML0 I                                       
+        1.500+009.000-019.000-011.200-022.000-021.600-02        YES     
+        1.000+00
+$
+$ Rod properties (GBEAMG/GPIPE -> PROD)
+$
+PROD         203       13.140-04
+$
+$ Spring properties (MGSPRNG -> PBUSH)
+$
+$ WARNING: MGSPRNG MATNO=7 has off-diagonal stiffness; coupling terms dropped
+PBUSH          7K       1.000+062.000+063.000+061.000+032.000+033.000+03
+$
+$ Elements
+$
+CQUAD4         1     100       1       2       3       4 0.00+00 0.00+00
+CTRIA3         2     215       1       4       5 0.00+00 0.00+00
+CBEAM          3     200       5       6 0.00+00 0.00+001.000+00        
+               1       1
+CBEAM          4     201       6       1 0.00+001.000+00 0.00+00        
+                        1.000-01 0.00+005.000-021.000-01 0.00+005.000-02
+CBEAM          5     202       5       1 0.00+00 0.00+001.000+00
+CROD           6     203       1       6
+CHEXA          7       1      11      12      13      14      15      16
+              17      18
+CHEXA          8       2      21      24      23      22      25      28
+              27      26
+CTETRA         9       1      31      32      33      34
+CPENTA        10       2      41      42      43      44      45      46
+CBUSH         11       7       5
+CONM1         12       6       01.000+02        1.000+027.000+00        
+        5.000+01                        1.000+01                        
+                1.000+01                                        5.000+00
+CBEAM*                13             204               6              11
+*        0.0000000000+00 0.0000000000+001.00000000000+00                
+*                                       3.51123441588-025.00000000000-02
+*       9.36329177569-023.51123441588-025.00000000000-029.36329177569-02
+CBEAM         14     205       6      12 0.00+00 0.00+001.000+00
+CBEAM         15     206      12      16 0.00+00 0.00+001.000+00
+CBEAM         16     207      13      14 0.00+00 0.00+001.000+00
+CBEAM         17     208      14      18 0.00+00 0.00+001.000+00
+CBEAM         18     209      16      17 0.00+00 0.00+001.000+00
+CBEAM         19     210      17      18 0.00+00 0.00+001.000+00
+CBEAM         20     211      15      18 0.00+00 0.00+001.000+00
+CBEAM         21     212      15      16 0.00+00 0.00+001.000+00
+CBEAM         22     213      11      15 0.00+00 0.00+001.000+00
+CBEAM         23     214      22      23 0.00+00 0.00+001.000+00
+CTRIA3        24     216       1       2       5 0.00+00 0.00+00
+CQUAD4        25     101       1       2       6       5 0.00+00 0.00+00
+$
+$ Nodal point masses (BNMASS -> CMASS2)
+$
+CMASS2        275.000+00      11       1
+CMASS2        285.000+00      11       3
+CMASS2        291.000-01      11       4
+CMASS2        301.000-01      11       6
+$
+$ Boundary conditions (BNBCD + BNDISPL -> SPC1 / SPC)
+$
+SPC1           1123            6
+SPC1           1123456         1
+SPC            1      12       1  0.0100
+SPC            1      12       2 -0.0200
+SPC            1      13       3  0.0000
+SPC1           2123            6
+SPC1           2123456         1
+SPC            2      12       1  0.0000
+SPC            2      12       2  0.0000
+SPC            2      13       3  0.0000
+$
+$ Linear dependences (BLDEP -> MPC)
+$
+MPC            1       4       3  1.0000       3       3 -1.0000
+$
+$ Nodal loads (BNLOAD -> FORCE / MOMENT)
+$
+FORCE          1       5       01.000+001.000+03 0.00+00-5.00+02
+FORCE          2       6       01.000+00 0.00+00 0.00+001.000+02
+MOMENT         2       6       01.000+00 0.00+002.500+02 0.00+00
+$
+$ Surface loads (BEUSLO -> PLOAD4)
+$
+PLOAD4         1       1-1000.00
+PLOAD4         2       1500.0000600.0000700.0000800.0000
+PLOAD4         1       72000.000                              13      12
+PLOAD4         2       2-900.000
+$
+$ Sesam sets (GSETMEMB/TDSETNAM, informational only):
+$ Set 5 "SetA" (nodes):
+$   1 2
+$ Set 6 (elements):
+$   7 8
+ENDDATA

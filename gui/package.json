@@ -1,0 +1,9 @@
+{
+  "name": "fem2bdf-gui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web GUI for the fem2bdf GeniE FEM -> Nastran BDF converter",
+  "scripts": {
+    "dev": "python server.py"
+  }
+}

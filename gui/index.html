@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fem2bdf — GeniE FEM → Nastran BDF 转换器</title>
+<style>
+  :root {
+    --primary: #1f6feb;
+    --border: #d8dee4;
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6a737d;
+    --warn-bg: #fff8e6;
+    --warn: #9a6700;
+    --ok: #1a7f37;
+    --err: #cf222e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: #0d1117;
+    color: #fff;
+    padding: 18px 24px;
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  header p { margin: 4px 0 0; font-size: 13px; color: #9da7b3; }
+  main { max-width: 880px; margin: 24px auto; padding: 0 16px 48px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  #banner {
+    background: var(--warn-bg);
+    border: 1px solid #eac54f;
+    color: var(--warn);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  /* 拖放区 */
+  #drop {
+    border: 2px dashed var(--border);
+    text-align: center;
+    padding: 44px 20px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  #drop:hover, #drop.drag {
+    border-color: var(--primary);
+    background: #f0f6ff;
+  }
+  #drop .big { font-size: 16px; font-weight: 600; }
+  #drop .hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  #drop .file {
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    word-break: break-all;
+  }
+  /* 操作行 */
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .row .spacer { flex: 1; }
+  label.check { font-size: 13px; color: var(--muted); user-select: none; }
+  button {
+    font: inherit;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 8px 18px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 28px;
+  }
+  button.primary:not(:disabled):hover { background: #1a5fd0; }
+  /* 结果 */
+  #status { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  #status.ok { color: var(--ok); }
+  #status.err { color: var(--err); }
+  #status .meta { font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 8px; }
+  pre#log {
+    background: #0d1117;
+    color: #c9d1d9;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: Consolas, "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    overflow: auto;
+    max-height: 420px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 14px 0 0;
+  }
+  pre#log .warn { color: #e3b341; }
+  pre#log .good { color: #3fb950; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>fem2bdf</h1>
+  <p>GeniE / Sesam FEM（T 文件）→ Nastran BDF 转换器 · 基于 DNV ExtFEMIO</p>
+</header>
+
+<main>
+  <div id="banner" hidden></div>
+
+  <div class="card" id="drop">
+    <input type="file" id="file" accept=".fem" hidden>
+    <div class="big">把 .fem 文件拖到这里</div>
+    <div class="hint">或点击选择文件（单个，最大 512 MB）</div>
+    <div class="file" id="fname" hidden></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label class="check"><input type="checkbox" id="autodl" checked> 转换成功后自动下载 BDF</label>
+      <div class="spacer"></div>
+      <button class="primary" id="convert" disabled>转 换</button>
+    </div>
+  </div>
+
+  <div class="card" id="result" hidden>
+    <div id="status"></div>
+    <div class="row">
+      <button id="download" hidden>下载 BDF</button>
+      <button id="copylog">复制日志</button>
+    </div>
+    <pre id="log"></pre>
+  </div>
+
+  <footer>fem2bdf GUI · 转换在本机完成，文件不会上传</footer>
+</main>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const drop = $('drop'), fileInput = $('file'), fname = $('fname');
+  const convertBtn = $('convert'), result = $('result'), status = $('status');
+  const logEl = $('log'), downloadBtn = $('download'), copyBtn = $('copylog');
+  const banner = $('banner');
+
+  let currentFile = null;
+  let lastBdf = null, lastName = null, lastLog = '';
+
+  // ---- 健康检查：转换器是否存在 ----
+  fetch('/api/health').then(r => r.json()).then(h => {
+    if (!h.exe_exists) {
+      banner.hidden = false;
+      banner.textContent = '未找到转换器 fem2bdf.exe（' + h.exe + '）。请先按 README 构建，或将 fem2bdf.exe 放到 gui/ 的上一级目录。';
+    }
+  }).catch(() => {});
+
+  // ---- 文件选择 / 拖放 ----
+  drop.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) setFile(fileInput.files[0]);
+  });
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add('drag');
+  }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove('drag');
+  }));
+  drop.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]);
+  });
+
+  function setFile(f) {
+    if (!/\.fem$/i.test(f.name)) {
+      showError('请选择 .fem 文件');
+      return;
+    }
+    currentFile = f;
+    fname.hidden = false;
+    fname.textContent = f.name + '（' + fmtSize(f.size) + '）';
+    convertBtn.disabled = false;
+  }
+
+  function fmtSize(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(2) + ' MB';
+  }
+
+  // ---- 转换 ----
+  convertBtn.addEventListener('click', async () => {
+    if (!currentFile) return;
+    convertBtn.disabled = true;
+    convertBtn.textContent = '转换中…';
+    result.hidden = false;
+    status.className = '';
+    status.textContent = '正在转换 ' + currentFile.name + ' …';
+    logEl.textContent = '';
+    downloadBtn.hidden = true;
+    lastBdf = null;
+
+    try {
+      const resp = await fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'X-Filename': currentFile.name,
+                   'Content-Type': 'application/octet-stream' },
+        body: currentFile
+      });
+      const d = await resp.json();
+      lastLog = d.log || d.error || '';
+      renderLog(lastLog);
+      if (d.ok && d.bdf) {
+        lastBdf = d.bdf;
+        lastName = d.output_name;
+        status.className = 'ok';
+        status.innerHTML = '✔ 转换成功<span class="meta">' +
+          esc(d.output_name) + ' · ' + fmtSize(d.bdf.length) + '</span>';
+        downloadBtn.hidden = false;
+        if ($('autodl').checked) download();
+      } else {
+        showError('✘ 转换失败' + (d.error ? '：' + d.error :
+                  '（退出码 ' + d.returncode + '）'));
+      }
+    } catch (err) {
+      showError('✘ 请求失败：' + err.message);
+    } finally {
+      convertBtn.disabled = false;
+      convertBtn.textContent = '转 换';
+    }
+  });
+
+  function showError(msg) {
+    result.hidden = false;
+    status.className = 'err';
+    status.textContent = msg;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderLog(text) {
+    const html = text.split('\n').map(line => {
+      let cls = '';
+      if (/WARNING|警告/.test(line)) cls = ' class="warn"';
+      else if (/converted|转换成功/.test(line)) cls = ' class="good"';
+      return '<span' + cls + '>' + esc(line) + '</span>';
+    }).join('\n');
+    logEl.innerHTML = html;
+    logEl.scrollTop = 0;
+  }
+
+  // ---- 下载 / 复制 ----
+  function download() {
+    if (!lastBdf) return;
+    const blob = new Blob([lastBdf], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = lastName || 'out.bdf';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  downloadBtn.addEventListener('click', download);
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(lastLog || logEl.textContent).then(() => {
+      copyBtn.textContent = '已复制';
+      setTimeout(() => copyBtn.textContent = '复制日志', 1200);
+    });
+  });
+})();
+</script>
+</body>
+</html>
